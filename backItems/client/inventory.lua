@@ -26,10 +26,15 @@ AddEventHandler('ox_inventory:updateInventory', function(changes)
 
     local needsUpdate = false
 
-
     for slot, change in pairs(changes) do
         if not needsUpdate then
             needsUpdate = shouldUpdate(slot, change)
+        end
+
+        -- if the equipped weapon's slot was cleared (dropped), clear CurrentWeapon
+        if not change and CurrentWeapon and CurrentWeapon.slot == slot then
+            CurrentWeapon = nil
+            needsUpdate = true
         end
 
         InvCache[slot] = change or nil
@@ -66,6 +71,16 @@ AddEventHandler('ox_inventory:currentWeapon', function(weapon)
     if weapon and Utils.hasFlashLight(weapon.metadata.components) then
         flashlightLoop()
     end
+end)
+
+-- Pulsar equip/holster: sync CurrentWeapon so the back-item hide logic works
+AddEventHandler('Weapons:Client:SwitchedWeapon', function(weaponName, item)
+    if weaponName and item then
+        CurrentWeapon = { slot = item.Slot, name = item.Name, metadata = item.MetaData or {} }
+    else
+        CurrentWeapon = nil
+    end
+    UpdateBackItems()
 end)
 
 lib.onCache('ped', RefreshBackItems)
