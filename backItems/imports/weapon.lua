@@ -1,6 +1,12 @@
 local CBackItem = require 'backItems.imports.backitem'
 local Utils = require 'backItems.imports.utils'
-local ox_items = exports.ox_inventory:Items()
+local _ox_items_cache
+local function ox_items()
+    if not _ox_items_cache then
+        _ox_items_cache = exports.ox_inventory:Items()
+    end
+    return _ox_items_cache
+end
 
 --- @class CBackWeapon : CBackItem
 --- @field new fun(self: self, serverId: number, itemData: ItemData
@@ -60,7 +66,7 @@ function BackWeapon:checkVarMod()
     if not components then return end
 
     for i = 1, #components do
-        local component = ox_items[components[i]]
+        local component = ox_items()[components[i]]
 
         if component.type == 'skin' or component.type == 'upgrade' then
             local weaponComp = component.client.component
@@ -83,8 +89,9 @@ function BackWeapon:getComponents()
 
     self:checkVarMod()
 
+    if components then
     for i = 1, #components do
-        local weaponComp = ox_items[components[i]]
+        local weaponComp = ox_items()[components[i]]
         for j = 1, #weaponComp.client.component do
             local weaponComponent = weaponComp.client.component[j]
             if DoesWeaponTakeWeaponComponent(hash, weaponComponent) and self.varMod ~= weaponComponent then
@@ -98,6 +105,7 @@ function BackWeapon:getComponents()
                 break
             end
         end
+    end
     end
 
     if not self.hadClip then

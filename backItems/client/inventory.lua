@@ -82,7 +82,9 @@ lib.onCache('vehicle', function(vehicle)
 end)
 
 local function load()
-    Wait(3000)
+    while GetResourceState('ox_inventory') ~= 'started' do
+        Wait(500)
+    end
     InvCache = exports.ox_inventory:GetPlayerItems()
     CurrentWeapon = exports.ox_inventory:getCurrentWeapon()
     RefreshBackItems()
