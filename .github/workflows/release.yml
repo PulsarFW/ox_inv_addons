@@ -17,10 +17,9 @@ jobs:
 
       - name: Bundle files
         run: |
-          mkdir -p ./temp/ox_inv_addons
-          cp ./{LICENSE,README.md,fxmanifest.lua,version.lua} ./temp/ox_inv_addons
-          cp -r ./{backItems,dragCraft,itemCarry} ./temp/ox_inv_addons
-          cd ./temp && zip -r ../ox_inv_addons.zip ./ox_inv_addons
+          mkdir -p staging/ox_inv_addons
+          rsync -a --exclude='.github' --exclude='node_modules' --exclude='staging' . staging/ox_inv_addons/
+          cd staging && zip -r ../ox_inv_addons.zip ox_inv_addons/
 
       - name: Create release
         uses: softprops/action-gh-release@v2
