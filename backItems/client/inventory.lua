@@ -16,9 +16,10 @@ end
 local function shouldUpdate(slot, change)
     local backitems = Config.BackItems
     local last = InvCache[slot]
-    local update = (last and backitems[last.name]) or change and backitems[change.name]
-
-    return update
+    if not change then
+        return not last or backitems[last.name] ~= nil
+    end
+    return (last and backitems[last.name]) or (change and backitems[change.name])
 end
 
 AddEventHandler('ox_inventory:updateInventory', function(changes)
@@ -80,7 +81,13 @@ AddEventHandler('Weapons:Client:SwitchedWeapon', function(weaponName, item)
     else
         CurrentWeapon = nil
     end
-    UpdateBackItems()
+    -- Defer one tick: if this fired from inside ox_inventory:updateInventory (e.g. drop of equipped weapon), InvCache is still stale. Waiting lets the backItems updateInventory
+    -- handler clear InvCache first, so UpdateBackItems computes the correct state and avoids
+    -- a double state-bag write that races async weapon-asset loading.
+    CreateThread(function()
+        Wait(0)
+        UpdateBackItems()
+    end)
 end)
 
 lib.onCache('ped', RefreshBackItems)
